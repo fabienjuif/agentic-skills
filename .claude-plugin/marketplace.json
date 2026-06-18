@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agentic-skills",
+  "description": "Fabien Juif's personal collection of Claude Code / agentic skills, packaged as installable plugins.",
+  "owner": {
+    "name": "Fabien Juif",
+    "email": "fabien.juif@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "fabien-skills",
+      "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories).",
+      "author": {
+        "name": "Fabien Juif"
+      },
+      "category": "productivity",
+      "source": {
+        "source": "directory",
+        "path": "plugins/fabien-skills"
+      }
+    }
+  ]
+}
