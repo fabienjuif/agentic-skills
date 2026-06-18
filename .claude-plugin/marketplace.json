@@ -9,15 +9,12 @@
   "plugins": [
     {
       "name": "fabien-skills",
-      "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories).",
+      "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep).",
       "author": {
         "name": "Fabien Juif"
       },
       "category": "productivity",
-      "source": {
-        "source": "directory",
-        "path": "plugins/fabien-skills"
-      }
+      "source": "./plugins/fabien-skills"
     }
   ]
 }

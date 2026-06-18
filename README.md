@@ -7,9 +7,10 @@ as an installable plugin. The goal: write a skill once, use it across every proj
 
 This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-skills`:
 
-| Skill       | What it does                                                                                                                     |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `make-plan` | Produce a durable, resumable plan as a `docs/plans/<name>/` directory (so a fresh session or a human can pick the work up cold). |
+| Skill           | What it does                                                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `make-plan`     | Produce a durable, resumable plan as a `docs/plans/<name>/` directory (so a fresh session or a human can pick the work up cold).    |
+| `fix-stale-doc` | Full-repo documentation sweep — fans out sub-agents to fix stale claims, remove duplication, and compact verbose prose, per module. |
 
 More skills get added to the same `fabien-skills` plugin over time.
 
@@ -43,8 +44,10 @@ agentic-skills/
 │       ├── .claude-plugin/
 │       │   └── plugin.json      # plugin manifest
 │       └── skills/
-│           └── make-plan/
-│               └── SKILL.md     # the skill
+│           ├── make-plan/
+│           │   └── SKILL.md     # a skill
+│           └── fix-stale-doc/
+│               └── SKILL.md     # a skill
 ├── README.md                    # this file (for humans)
 ├── CLAUDE.md                    # guidance for agents working in this repo
 └── LICENSE                      # MIT

@@ -1,7 +1,7 @@
 {
   "name": "fabien-skills",
-  "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories).",
-  "version": "0.1.0",
+  "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep).",
+  "version": "0.2.0",
   "author": {
     "name": "Fabien Juif",
     "email": "fabien.juif@gmail.com"
