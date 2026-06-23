@@ -14,6 +14,18 @@
         "name": "Fabien Juif"
       },
       "category": "productivity",
+      "keywords": [
+        "skills",
+        "agentic",
+        "productivity",
+        "planning",
+        "documentation",
+        "automation",
+        "slack",
+        "jira",
+        "github",
+        "workflow"
+      ],
       "source": "./plugins/fabien-skills"
     }
   ]

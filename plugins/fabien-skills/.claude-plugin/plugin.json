@@ -1,10 +1,22 @@
 {
   "name": "fabien-skills",
   "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep), catch-up (personal Slack/Jira/GitHub catch-up dashboard).",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": {
     "name": "Fabien Juif",
     "email": "fabien.juif@gmail.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "agentic",
+    "productivity",
+    "planning",
+    "documentation",
+    "automation",
+    "slack",
+    "jira",
+    "github",
+    "workflow"
+  ]
 }
