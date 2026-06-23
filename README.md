@@ -11,6 +11,7 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `make-plan`     | Produce a durable, resumable plan as a `docs/plans/<name>/` directory (so a fresh session or a human can pick the work up cold).    |
 | `fix-stale-doc` | Full-repo documentation sweep — fans out sub-agents to fix stale claims, remove duplication, and compact verbose prose, per module. |
+| `catch-up`      | Personal daily catch-up dashboard — Slack messages you're involved in, Jira tickets assigned/unassigned, and open PRs in your repos. Self-configures on first run. |
 
 More skills get added to the same `fabien-skills` plugin over time.
 
