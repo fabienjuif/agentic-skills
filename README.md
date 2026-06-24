@@ -12,6 +12,7 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 | `make-plan`     | Produce a durable, resumable plan as a `docs/plans/<name>/` directory (so a fresh session or a human can pick the work up cold).    |
 | `fix-stale-doc` | Full-repo documentation sweep — fans out sub-agents to fix stale claims, remove duplication, and compact verbose prose, per module. |
 | `catch-up`      | Personal daily catch-up dashboard — Slack messages you're involved in, Jira tickets assigned/unassigned, and open PRs in your repos. Self-configures on first run. |
+| `capture-docs`  | At session end, captures what was learned into the repo's docs so future sessions start cheaper. Updates both human and AI-facing docs. |
 
 More skills get added to the same `fabien-skills` plugin over time.
 
@@ -46,9 +47,13 @@ agentic-skills/
 │       │   └── plugin.json      # plugin manifest
 │       └── skills/
 │           ├── make-plan/
-│           │   └── SKILL.md     # a skill
-│           └── fix-stale-doc/
-│               └── SKILL.md     # a skill
+│           │   └── SKILL.md
+│           ├── fix-stale-doc/
+│           │   └── SKILL.md
+│           ├── catch-up/
+│           │   └── SKILL.md
+│           └── capture-docs/
+│               └── SKILL.md
 ├── README.md                    # this file (for humans)
 ├── CLAUDE.md                    # guidance for agents working in this repo
 └── LICENSE                      # MIT
