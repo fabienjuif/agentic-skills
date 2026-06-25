@@ -13,6 +13,7 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 | `fix-stale-doc` | Full-repo documentation sweep — fans out sub-agents to fix stale claims, remove duplication, and compact verbose prose, per module. |
 | `catch-up`      | Personal daily catch-up dashboard — Slack messages you're involved in, Jira tickets assigned/unassigned, and open PRs in your repos. Self-configures on first run. |
 | `capture-docs`  | At session end, captures what was learned into the repo's docs so future sessions start cheaper. Updates both human and AI-facing docs. |
+| `pr-review`     | Review a PR's diff and either print findings locally (default) or post them as one consolidated, graded (1–5), severity-grouped comment. Wraps `/code-review`, re-reads the previous review for continuity, and collapses the prior pushed review into a `<details>` summary. |
 
 More skills get added to the same `fabien-skills` plugin over time.
 
@@ -52,7 +53,9 @@ agentic-skills/
 │           │   └── SKILL.md
 │           ├── catch-up/
 │           │   └── SKILL.md
-│           └── capture-docs/
+│           ├── capture-docs/
+│           │   └── SKILL.md
+│           └── pr-review/
 │               └── SKILL.md
 ├── README.md                    # this file (for humans)
 ├── CLAUDE.md                    # guidance for agents working in this repo
