@@ -119,6 +119,15 @@ ranking. There may be no dedicated MCP tool for this; if so, fetch them via the 
 workspace token). If no such access is available, note "Later items: unavailable" rather than
 dropping the category silently.
 
+**Read the thread before ranking any Slack item as blocked-on-you.** A single matched message is a
+snippet, not a verdict — a mention that reads like an open question to the user is often already
+answered by them further down the thread, or the whole incident is resolved. For every Slack item a
+first pass would rank in tier 1 (directly blocked on you), pull the full thread with
+`slack_read_thread` and check whether the user already replied and whether the ask still stands. Only
+keep it in tier 1 if it's genuinely still waiting; otherwise demote it (already-replied → tier 3, or
+drop it into the rolled-up tail). This costs a few extra reads but is what stops false "you owe a
+reply" items. Do this for the tier-1 candidates, not the whole feed.
+
 ### Jira — assigned to me or open & unassigned
 
 Run **one query per configured project, in parallel** (`searchJiraIssuesUsingJql`, Atlassian MCP):
@@ -157,7 +166,8 @@ Score each item by how much it's **actively waiting on the user** and how urgent
 highest first:
 
 1. **Directly blocked on you** — a PR with your review requested, a Jira ticket assigned to you that's
-   In Progress, a Slack mention that asks you a direct question and is unanswered, an item you
+   In Progress, a Slack mention that asks you a direct question and is unanswered (verify against the
+   full thread — see the Slack section; a snippet that looks unanswered often isn't), an item you
    **saved for later** in Slack.
 2. **Owned by you, in flight** — your open PRs (esp. non-draft, with changes requested or stale), your
    assigned tickets not yet started.

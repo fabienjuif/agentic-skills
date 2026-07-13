@@ -30,7 +30,7 @@ From within Claude Code, add this repo as a marketplace, then install the plugin
 To develop locally against a checkout instead of GitHub:
 
 ```
-/plugin marketplace add /home/fabien/repos/agentic-skills
+/plugin marketplace add <path-to-your-checkout>
 /plugin install fabien-skills@agentic-skills
 ```
 

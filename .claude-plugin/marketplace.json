@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "fabien-skills",
-      "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep), catch-up (personal Slack/Jira/GitHub catch-up dashboard).",
+      "description": "A bundle of reusable agentic skills covering planning, documentation upkeep, PR review, idea capture, and daily catch-up. See the README skill table for the full, current list.",
       "author": {
         "name": "Fabien Juif"
       },
