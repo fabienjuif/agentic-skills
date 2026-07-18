@@ -42,12 +42,14 @@ Staleness comes in two flavors, and they get different treatment:
 - **Behavioral staleness** — a doc describes _what the code does_ and the description may no longer
   match. This is a judgment call, and a confident-but-wrong rewrite degrades a good doc. **Do not
   rewrite it.** Leave the text as-is and add a flag for a human:
-  `<!-- ⚠️ stale? verify against <path>: <one-line reason> -->`. Only rewrite a behavioral claim
-  when the code _unambiguously_ contradicts it (e.g. the doc says "returns an error", the function
-  has no error return) — and say so in your report.
+  `<!-- ⚠️ stale#<id> verify against <path>: <one-line reason> -->`. The `<id>` (assigned in
+  Step 2) is what makes every flag mechanically findable and unambiguous in later steps. Only
+  rewrite a behavioral claim when the code _unambiguously_ contradicts it (e.g. the doc says
+  "returns an error", the function has no error return) — and say so in your report.
 
-Bias toward flagging. A missed stale line a human later catches is cheaper than a plausible wrong
-edit that erases a fact nobody notices was lost.
+Bias toward flagging **during the fan-out**: a missed stale line a human later catches is cheaper
+than a plausible wrong edit that erases a fact nobody notices was lost. A flag is a staging state,
+not the final answer — **Step 4 (hardening)** revisits each one and resolves what it can.
 
 ## Step 1 — Build the work list
 
@@ -108,6 +110,11 @@ A large subdir may be split into 2–3 chunks. Aim for roughly 5–15 doc files 
 
 ## Step 2 — Fan out (one sub-agent per chunk)
 
+Pick this sweep's flag number: 1 + the highest sweep number in any existing `stale#` marker in the
+tree (`git grep -ohE 'stale#[0-9]+'`; use 1 if none). A chunk's flags are IDed
+`stale#<sweep>-<chunk>-<n>` (chunk index, then a counter from 1) — unique without any coordination
+between parallel sub-agents, and mechanically distinguishable from an earlier sweep's kept flags.
+
 Dispatch the chunks as parallel `Agent` calls (`general-purpose`), in batches — issue several in a
 single message so they run concurrently. Each sub-agent **edits the files in its chunk directly**.
 
@@ -128,8 +135,9 @@ Give every sub-agent this contract (fill in the bracketed parts):
 >      build task / flag / env var / struct field): verify against the code and **auto-fix or
 >      delete**.
 >    - _Behavioral_ (a description of what the code does that may have drifted): **do not rewrite.**
->      Leave the text and add `<!-- ⚠️ stale? verify against <path>: <reason> -->`. Only rewrite when
->      the code _unambiguously_ contradicts the doc, and note it in your report.
+>      Leave the text and add `<!-- ⚠️ stale#<prefix>-<n> verify against <path>: <reason> -->`,
+>      numbering `<n>` from 1 under your assigned prefix **[sweep-chunk]**. Only rewrite when the
+>      code _unambiguously_ contradicts the doc, and note it in your report.
 >      If you cannot verify a claim, leave it and flag it; never guess.
 > 2. **De-duplicate within your chunk.** Same audience (human vs LLM — see below), same fact stated
 >    twice → keep one canonical copy, replace the other with a one-line pointer.
@@ -147,7 +155,8 @@ Give every sub-agent this contract (fill in the bracketed parts):
 >
 > - files touched
 > - syntactic staleness fixed (one line each: `path: was X → now Y`)
-> - behavioral staleness flagged (one line each: `path: ⚠️ <what to verify>`)
+> - behavioral rewrites — unambiguous contradictions only (one line each: `path: was "X" → now "Y"`)
+> - behavioral staleness flagged (one line each: `stale#<id>: <path> — <what to verify>`)
 > - duplication removed (one line each)
 > - approx. lines saved
 > - **cross-chunk dup candidates**: content you suspect is also duplicated in another doc outside
@@ -159,8 +168,49 @@ Give every sub-agent this contract (fill in the bracketed parts):
 Collect the "cross-chunk dup candidates" from every report. For each genuine cross-doc duplication
 **within the same audience**, pick one canonical home and replace the other occurrence with a
 one-line reference. This is usually a handful of edits — do it inline, no extra fan-out needed.
+A `⚠️` flag inside a deduplicated paragraph moves to the surviving copy — never drop a flag while
+collapsing a duplicate; Step 4 still has to find it.
 
-## Step 4 — Verify & report
+## Step 4 — Harden the flags (resolve what you can; keep only real judgment calls)
+
+Scope is mechanical: every flag bearing this sweep's number is in scope — whether or not a report
+mentions it — and any other `⚠️` content (an earlier sweep's kept flags, a warning callout in
+prose) is not this pass's to touch. Locate them:
+
+```bash
+git grep -n 'stale#<sweep>-'
+```
+
+For each flag, **read the code it names** and decide:
+
+- **Resolvable at high confidence** — the code unambiguously settles it: the described behavior is
+  plainly right, plainly wrong, or the correct line is mechanical once you've read the named symbol.
+  **Rewrite the prose correctly and delete the flag.** This is the same "unambiguous → fix" test
+  from the Edit-vs-flag rule, now applied with real read scope and full attention on one claim
+  instead of a whole chunk.
+- **Genuine judgment call** — settling it needs a decision only a human owns: is this the behavior
+  we _want_, a product/design intent, a deliberate tradeoff, a "should we even document this"? The
+  code alone can't answer. That includes a doc that may describe _intended_ behavior the code fails
+  to deliver — when the code itself might be the bug, rewriting the doc to match it enshrines the
+  bug. **Keep the flag.**
+
+The bar is genuine confidence, not convenience. If reading the code leaves you unsure, the flag
+stays. Never retire a flag by softening the claim to something vaguer — either the prose becomes
+_correct_, or the flag remains. And watch for over-broad flags: a sub-agent that saw one caller stop
+emitting `X` may write "X is gone" when X still lives elsewhere — the hardening read is where you
+catch and narrow that.
+
+For a handful of flags, do this inline. If the sweep raised many (~10+), fan out verifiers — one per
+group of flags naming the same file/code dir, not one per flag, so no two verifiers re-read the same
+code — the adversarial-verify shape: each **edits its docs directly** (like a Step 2 sub-agent —
+rewrite the prose, delete the resolved flag) and returns, per flag, the fixed/kept report line
+below. A verifier starts from the files its flags name but may search the repo for a flagged
+symbol — that repo-wide check is precisely how over-broad "X is gone" flags get caught.
+
+Report per flag, keyed by ID:
+`stale#<id> (path) → fixed: was X, now Y` vs `stale#<id> (path) kept: <why a human must decide>`.
+
+## Step 5 — Verify & report
 
 - If the project uses a markdown formatter (e.g. `prettier`), format the touched markdown — but
   **only the files you edited**, and check the diff. Some docs are hand-aligned and not
@@ -168,13 +218,20 @@ one-line reference. This is usually a handful of edits — do it inline, no extr
   if the formatter reformats lines you didn't touch or breaks a table, revert it and keep your edit
   surgical instead.
 - Review with `git diff`. Sanity-check that no stale "fix" deleted a fact that was actually correct.
+  Behavioral rewrites carry no `⚠️` in the diff — walk both the hardening report's "fixed" list and
+  the Step 2 reports' behavioral-rewrite lines, giving each the same scrutiny a surviving flag would
+  have gotten.
 - **Do not commit** — the user reviews. Print a short summary: chunks processed, syntactic fixes,
-  behavioral `⚠️` flags raised (these need a human), dups removed, total lines saved.
+  `⚠️` flags raised → resolved in hardening (one line each: was/now — the user must be able to
+  review these from the summary, since they carry no marker in the diff) vs kept (each with its
+  reason — only genuine judgment calls should remain), dups removed, total lines saved.
 
 ## Token economy (non-negotiable)
 
-- Each sub-agent reads **only** its own doc files + the narrowly scoped code dir it needs. Never the
-  whole repo.
+- Each fan-out sub-agent (Step 2) reads **only** its own doc files + the narrowly scoped code dir it
+  needs — never the whole repo. Step 4 verifiers are the one exception: a targeted repo-wide
+  _search_ for the flagged symbol is allowed; wholesale reading still isn't.
 - Reports are terse and structured — never echo file contents back.
-- Read-then-edit in a single pass; no separate detect/fix double read.
+- Within a Step 2 chunk, read-then-edit in a single pass; no separate detect/fix double read.
+  (Step 4's re-read of flagged claims is the designed exception.)
 - Small mechanical chunks (e.g. a tiny CLI README cluster) can run on a cheaper model.
