@@ -1,7 +1,7 @@
 {
   "name": "fabien-skills",
   "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep), catch-up (personal Slack/Jira/GitHub catch-up dashboard), capture-docs (session-end capture of learnings into repo docs), pr-review (review a PR locally or push a consolidated, continuity-aware review comment), idea (capture project ideas into a docs/IDEA.md backlog).",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": {
     "name": "Fabien Juif",
     "email": "fabien.juif@gmail.com"

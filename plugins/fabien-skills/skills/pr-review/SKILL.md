@@ -62,12 +62,15 @@ A re-review must build on the last one, not start cold. Find the previous review
 
 1. **In this conversation** — if you already posted/printed a pr-review earlier in this
    session, that text is the previous review.
-2. **On the PR** — look for our marked review comment:
+2. **On the PR** — look for our marked review comment. Match on the **marker alone**,
+   never on the comment author: the author varies by runtime (your user locally,
+   `github-actions[bot]` or `claude[bot]` in CI), and installation tokens — like the
+   `GITHUB_TOKEN` a GitHub Actions job authenticates `gh` with — cannot call
+   `gh api user` at all, so an author lookup would break every CI run:
 
    ```bash
-   me=$(gh api user -q .login)
    gh api "repos/$OWNER/$REPO/issues/$N/comments" --paginate \
-     -q '.[] | select(.user.login=="'"$me"'" and (.body|test("<!-- pr-review")))
+     -q '.[] | select(.body|test("<!-- pr-review"))
          | {id, body, marker:(.body|capture("<!-- pr-review(?<m>[^>]*)-->").m)}'
    ```
 
@@ -232,9 +235,12 @@ collapsed `<details>` so the history is preserved but quiet.
 ## Notes
 
 - `push` needs write access to the PR's repo; `local` needs only read. Any authenticated
-  GitHub path works (`gh`, MCP, REST).
+  GitHub path works (`gh`, MCP, REST). In GitHub Actions, PR conversation comments are
+  issue comments: give the job `pull-requests: write` **and** `issues: write` (the collapse
+  step PATCHes `repos/…/issues/comments/<id>`).
 - The marker (`<!-- pr-review … -->`) is the source of truth for finding our prior review
-  and its counts — never rely on comment position or first/last ordering.
+  and its counts — never rely on comment position, first/last ordering, or the comment's
+  author (which differs between local runs and CI, and may not even be queryable).
 - **Prefer a cheap durable signal over remembered state.** The head sha (short-circuit in
   Step 1) and "does this finding's code still match" (reconciliation) both reconstruct what
   to do from the PR itself, so the review stays correct even with zero session memory of the
