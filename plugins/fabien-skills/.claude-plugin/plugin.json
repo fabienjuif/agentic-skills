@@ -1,7 +1,7 @@
 {
   "name": "fabien-skills",
-  "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep), catch-up (personal Slack/Jira/GitHub catch-up dashboard), capture-docs (session-end capture of learnings into repo docs), pr-review (review a PR locally or push a consolidated, continuity-aware review comment), idea (capture project ideas into a docs/IDEA.md backlog), gitmoji (commit with a gitmoji-prefixed message).",
-  "version": "0.7.0",
+  "description": "A bundle of reusable agentic skills. Currently: make-plan (write durable, resumable plan directories), fix-stale-doc (full-repo documentation sweep), catch-up (personal Slack/Jira/GitHub catch-up dashboard), capture-docs (session-end capture of learnings into repo docs), pr-review (review a PR locally or push a consolidated, continuity-aware review comment), idea (capture project ideas into a docs/IDEA.md backlog), gitmoji (commit with a gitmoji-prefixed message), tmp-cleanup (free RAM by deleting stale /tmp entries).",
+  "version": "0.8.0",
   "author": {
     "name": "Fabien Juif",
     "email": "fabien.juif@gmail.com"
