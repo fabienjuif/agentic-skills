@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "agentic-skills",
-  "description": "Fabien Juif's personal collection of Claude Code / agentic skills, packaged as installable plugins.",
+  "description": "Fabien Juif's personal collection of shared Claude Code and Codex skills, packaged as installable plugins.",
   "owner": {
     "name": "Fabien Juif",
     "email": "fabien.juif@gmail.com"

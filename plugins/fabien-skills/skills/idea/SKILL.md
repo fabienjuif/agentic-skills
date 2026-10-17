@@ -87,8 +87,8 @@ One of the two modes allowed to rewrite or delete entries. The user decides; you
    - **merge** — duplicates/overlaps another entry (say which);
    - **promote** — repeatedly relevant, deserves `make-plan` now;
    - **keep** — still plausible, leave it.
-2. Present the recommendations and let the user decide, via `AskUserQuestion` (multi-select,
-   batched if the list is long) or a plain summary they can redline. Never drop an entry the
+2. Present the recommendations and let the user decide, via an available question tool
+   (batch choices when supported) or a plain summary they can redline. Never drop an entry the
    user didn't confirm.
 3. Rewrite the file with the outcome:
    - Kept (and merged-into) entries get their survival count bumped in the title:
@@ -118,7 +118,7 @@ Buckets: `[now]` / `[next]` / `[later]`, carried as a suffix in the entry title:
    - **fit with current context** — touches what the user is working on now;
    - **cheap first step** — concrete small first steps favor `[now]`.
 3. Present the full picture (proposed buckets + existing ones) and run the decisions through
-   `AskUserQuestion` — batched, one question per contested idea or per bucket, with your
+   an available question tool or conversation — one question per contested idea or per bucket, with your
    proposal as the recommended option. Also ask whether any *existing* bucket assignment
    should move; re-sorting old decisions is allowed here because the user is making the call.
 4. Rewrite the file in bucket order — `[now]`, then `[next]`, then `[later]` — newest first

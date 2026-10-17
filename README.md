@@ -3,13 +3,16 @@
 [![Latest release](https://img.shields.io/github/v/release/fabienjuif/agentic-skills)](https://github.com/fabienjuif/agentic-skills/releases)
 [![License: MIT](https://img.shields.io/github/license/fabienjuif/agentic-skills)](./LICENSE)
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-blueviolet)](https://claude.com/claude-code)
+[![Codex skills](https://img.shields.io/badge/Codex-skills-black)](https://learn.chatgpt.com/docs/build-skills)
 
-[Claude Code](https://claude.com/claude-code) skills that make sessions resumable and repos
+[Claude Code](https://claude.com/claude-code) and Codex skills that make sessions resumable and repos
 self-documenting. This is Fabien Juif's own toolkit, packaged as an installable plugin marketplace:
 write a skill once, use it across every project. It is used daily on both work and personal
 projects, which is why every skill stays project-agnostic.
 
 ## Install
+
+### Claude Code
 
 From within Claude Code, add this repo as a marketplace, then install the plugin:
 
@@ -28,6 +31,25 @@ To develop locally against a checkout instead of GitHub:
 Once installed, the skills are available in any project: type `/make-plan` or just ask Claude to
 "create a plan".
 
+### Codex
+
+With a Codex CLI that provides `codex plugin add` (checked with 0.162.1):
+
+```bash
+codex plugin marketplace add fabienjuif/agentic-skills
+codex plugin add fabien-skills@agentic-skills
+```
+
+For local development, replace `fabienjuif/agentic-skills` with the absolute path to this checkout
+in the first command. Restart Codex after installing or updating the plugin. Open `/skills` or
+type `$` to select a skill (bundled names appear as `fabien-skills:make-plan`), or ask to
+"create a plan". Claude-style `/make-plan` examples in the skill text describe the same workflow;
+they are not Codex slash commands.
+
+Both hosts load the same files. Codex supports the existing `.claude-plugin` manifests, so no
+second skill tree or manifest copy is needed. See [Codex compatibility](docs/codex.md) for
+standalone skill installation, shared configuration, and validation details.
+
 ## Why
 
 Every new agent session starts from zero: it has to rediscover the codebase, the decisions already
@@ -43,11 +65,11 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 
 | Skill           | What it does                                                                                                                              | Needs                                           |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `make-plan`     | Write a non-trivial task down as a `docs/plans/<name>/` directory a fresh session or a human can pick up cold.                             | `git` only                                      |
+| `make-plan`     | Write a resumable `docs/plans/<name>/` directory with shared instructions reachable through `AGENTS.md` and `CLAUDE.md`.                  | `git` only                                      |
 | `idea`          | Capture a project idea into a `docs/IDEA.md` backlog; prune and prioritize it later with `/idea unbloat` and `/idea sort`.                 | `git` only                                      |
 | `capture-docs`  | At session end, write what was learned into human and AI-facing docs so the next session starts cheaper.                                  | `git` only                                      |
 | `close-session` | Wrap up in one pass: update tickets, react on Slack threads of merged PRs, open a docs PR, clean scratch data, fast-forward main checkouts. | `git`, `gh`; Linear MCP and Slack MCP optional |
-| `fix-stale-doc` | Full-repo documentation sweep that fixes stale claims, removes duplication and compacts prose, one sub-agent per module.                   | `git` only                                      |
+| `fix-stale-doc` | Sweep stale, duplicated, or verbose docs in scoped chunks; use subagents when available, otherwise work sequentially.                     | `git` only                                      |
 | `pr-review`     | Review a PR and post one consolidated comment that updates in place across re-reviews, so the thread stays clean.                           | `gh`                                            |
 | `gitmoji`       | Commit the current changes with the one [gitmoji](https://gitmoji.dev) that matches the intent, in the repo's own format. Never pushes.    | `git` only                                      |
 | `catch-up`      | Daily dashboard of Slack messages, Jira tickets and open PRs that need you, distilled into one prioritized list. Self-configures on first run. | `gh`, Slack MCP, Jira MCP; each source optional |
@@ -93,7 +115,11 @@ agentic-skills/
 │               └── SKILL.md
 ├── README.md                    # this file (for humans)
 ├── CONTRIBUTING.md              # how to add or edit a skill
-├── CLAUDE.md                    # guidance for agents working in this repo
+├── AGENTS.md                    # Codex entry point to shared guidance
+├── CLAUDE.md                    # shared guidance for agents working in this repo
+├── docs/
+│   ├── codex.md                 # compatibility and shared configuration
+│   └── plans/codex-support/     # implementation scope and validation record
 └── LICENSE                      # MIT
 ```
 

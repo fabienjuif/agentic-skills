@@ -115,12 +115,12 @@ tree (`git grep -ohE 'stale#[0-9]+'`; use 1 if none). A chunk's flags are IDed
 `stale#<sweep>-<chunk>-<n>` (chunk index, then a counter from 1) — unique without any coordination
 between parallel sub-agents, and mechanically distinguishable from an earlier sweep's kept flags.
 
-Dispatch the chunks as parallel `Agent` calls (`general-purpose`), in batches — issue several in a
-single message so they run concurrently. Each sub-agent **edits the files in its chunk directly**.
+Dispatch the chunks with the host's available subagent tools, in batches within its concurrency
+limit. Each sub-agent **edits the files in its chunk directly**. If delegation is unavailable,
+process the same chunks sequentially yourself and retain the per-chunk scope and report.
 
-> If the user opts into orchestration ("use a workflow" / "ultracode"), prefer the `Workflow` tool:
-> a `pipeline` over the chunk list, each chunk a stage that returns a structured report. Otherwise
-> use plain parallel `Agent` calls — no opt-in needed.
+If the user requests a specific orchestration tool and it is available, use it with the same
+chunk boundaries and reporting contract. Otherwise use the host's normal delegation mechanism.
 
 Give every sub-agent this contract (fill in the bracketed parts):
 
@@ -200,7 +200,9 @@ _correct_, or the flag remains. And watch for over-broad flags: a sub-agent that
 emitting `X` may write "X is gone" when X still lives elsewhere — the hardening read is where you
 catch and narrow that.
 
-For a handful of flags, do this inline. If the sweep raised many (~10+), fan out verifiers — one per
+For a handful of flags, do this inline. If the sweep raised many (~10+), use available subagent
+tools to fan out verifiers; if delegation is unavailable, verify the groups sequentially yourself.
+Use one verifier per
 group of flags naming the same file/code dir, not one per flag, so no two verifiers re-read the same
 code — the adversarial-verify shape: each **edits its docs directly** (like a Step 2 sub-agent —
 rewrite the prose, delete the resolved flag) and returns, per flag, the fixed/kept report line

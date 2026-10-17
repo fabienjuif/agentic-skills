@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Review a pull request and post ONE consolidated review comment that updates in place across re-reviews — each pass collapses the prior review into a `<details>` block instead of stacking new comments, so the thread stays clean and diffable. This is the reason to reach for it over `/code-review --comment` (which posts fresh inline threads every time). Wraps the built-in /code-review for analysis; adds modes (local print vs push), continuity (re-reads the last review), and history collapse. Use when asked to "review this PR", "/pr-review", "/pr-review push", "/pr-review local", "post a review", or "re-review after my changes".
+description: Review a pull request locally or post one consolidated comment that updates in place across re-reviews, preserving prior reviews in collapsed history. Uses an available review skill or direct diff analysis. Use when asked to "review this PR", "/pr-review", "/pr-review push", "/pr-review local", "post a review", or "re-review after my changes".
 ---
 
 # /pr-review — review a PR, locally or pushed
@@ -11,8 +11,8 @@ skill maintains **one** consolidated comment that updates in place — each re-r
 collapses the previous one into a `<details>` block and posts the new one, so the thread
 stays clean and two reviews are easy to diff.
 
-The actual code analysis is delegated to the built-in **`/code-review`** skill; on top of
-it this skill adds:
+Use **`/code-review`** for analysis when that skill is available; otherwise review the diff
+directly using Step 2's rubric. This skill adds:
 
 - **one-comment-in-place** — a single marked comment, re-reviews update rather than stack,
 - **modes** — `local` (default, print only) vs `push`,
@@ -99,7 +99,7 @@ If there is no previous review anywhere, this is the first review — proceed fr
 
 ## Step 2 — Analyze
 
-Run the built-in **`/code-review`** skill over the PR's diff to get the raw findings. Pick
+If available, run the **`/code-review`** skill over the PR's diff to get the raw findings. Pick
 the effort from the request (default the skill's normal level; honor "thorough"/"quick").
 Use its local review path, **not** the `ultra` cloud mode — this skill is the cheap,
 in-session loop. Do **not** pass `/code-review --comment`: this skill owns the posting and

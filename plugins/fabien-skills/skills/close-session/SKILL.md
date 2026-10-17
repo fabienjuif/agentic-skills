@@ -18,8 +18,24 @@ session's work.
 
 ## Step 0 — Load config
 
-Config file: `.claude/.config/close-session.json`. Walk up from the cwd to `$HOME` (inclusive),
-first match wins; `$CLOSE_SESSION_CONFIG` overrides the walk. Every key is optional.
+Use the same config in Claude Code and Codex; do not keep separate runtime copies.
+
+1. If `$CLOSE_SESSION_CONFIG` is set, use that exact path and do not search elsewhere.
+2. Otherwise, walk upward from the cwd. At **each directory**, check
+   `.agents/.config/close-session.json`, then the legacy `.claude/.config/close-session.json`.
+   Stop at the first existing candidate: the nearest directory wins, with `.agents` preferred
+   only when both files exist in that same directory. Do not merge files.
+3. When the cwd is within `$HOME`, stop at `$HOME` (inclusive). For a cwd outside `$HOME`,
+   walk to the filesystem root, then check the two candidates in `$HOME` once as a fallback.
+
+Remember the selected path. An explicit override that is missing, unreadable, or invalid, or a
+nearest existing candidate that is unreadable or invalid JSON, is an error: report the path and
+stop, rather than silently falling back to another file or overwriting it. An empty file is
+invalid JSON. If no file is found, use the defaults below; every key is optional. This workflow
+does not create a config. If the user requests a config update, edit the selected path (including
+a legacy path or explicit override). For a new config, default to
+`$HOME/.agents/.config/close-session.json`, or `<repo-root>/.agents/.config/close-session.json`
+when the user requests project-only scope.
 
 A job runs only when it is set up: **Tickets** needs a `linear` section and a tracker tool
 connected, **Slack** needs a `slack` section and a Slack tool connected. **Docs** and **Cleanup**
@@ -55,6 +71,10 @@ write.
 ## Step 1 — Gather (read-only)
 
 Run the gathers of the jobs that run, in parallel. Nothing is written in this step.
+Discover the integrations available in the current runtime. Named tracker and Slack tools below
+are examples: use equivalent connected operations, or authenticated CLI/API access when available.
+Do not assume another plugin is installed. The `gh` examples can likewise use equivalent GitHub
+operations; missing optional integrations retain the job-selection rules in Step 0.
 
 **a) PRs of the session.** From the conversation: every PR opened, pushed to, reviewed-and-merged,
 or merged this session. Confirm each with
@@ -62,10 +82,11 @@ or merged this session. Confirm each with
 later step keys on it.
 
 **b) Tickets.** Collect ticket ids (`[A-Z][A-Z0-9]+-\d+`) from the conversation, the PR titles,
-bodies, and branch names from (a). Fetch each (`get_issue`) for its state, assignee, and labels.
-Map each ticket to the PRs and outcomes that concern it. Work with no ticket: search the tracker
-first (`list_issues`, two or three keyword queries — feature name, component, error string). A
-match becomes an update, not a new ticket. Only unmatched work becomes a creation proposal.
+bodies, and branch names from (a). Fetch each with the tracker's issue lookup (for example,
+`get_issue`) for its state, assignee, and labels. Map each ticket to the PRs and outcomes that
+concern it. Work with no ticket: search the tracker first (for example, `list_issues`, with two or
+three keyword queries — feature name, component, error string). A match becomes an update, not a
+new ticket. Only unmatched work becomes a creation proposal.
 
 **c) Slack threads.** For each **merged** PR: search Slack for its URL (and `<repo>#<number>`
 form), scoped to `slack.channels` when set. For each hit take the thread root (the message
@@ -123,7 +144,8 @@ Run in this order. One failure does not stop the rest — record it and continue
 1. **Tickets.** Comments first, then state moves, then creations. On an update that sets labels,
    pass the existing labels too (many trackers replace the set). Link each PR to its ticket
    (attachment or link field) when the tracker supports it.
-2. **Slack.** `slack_add_reaction` on each thread root. `already_reacted` counts as success.
+2. **Slack.** Add the configured reaction on each thread root with an available Slack reaction
+   operation (for example, `slack_add_reaction`). `already_reacted` counts as success.
 3. **Docs.** Never in the current working tree — other sessions may share it.
    ```bash
    git fetch origin
