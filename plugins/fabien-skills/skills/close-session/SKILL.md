@@ -19,9 +19,13 @@ session's work.
 ## Step 0 — Load config
 
 Config file: `.claude/.config/close-session.json`. Walk up from the cwd to `$HOME` (inclusive),
-first match wins; `$CLOSE_SESSION_CONFIG` overrides the walk. Every key is optional — a missing
-file means defaults, and a missing section skips nothing except what needs it (no `linear.team` →
-ticket creation is proposed without a team and you ask for one).
+first match wins; `$CLOSE_SESSION_CONFIG` overrides the walk. Every key is optional.
+
+A job runs only when it is set up: **Tickets** needs a `linear` section and a tracker tool
+connected, **Slack** needs a `slack` section and a Slack tool connected. **Docs** and **Cleanup**
+always run. A job that does not run is silent: not gathered, not in the plan, not in the report,
+no "skipped" or "not configured" line. Inside a running job, a missing key falls back to its
+default (no `linear.team`: ask for a team only when a ticket is actually created).
 
 ```jsonc
 {
@@ -50,7 +54,7 @@ write.
 
 ## Step 1 — Gather (read-only)
 
-Run the four gathers in parallel. Nothing is written in this step.
+Run the gathers of the jobs that run, in parallel. Nothing is written in this step.
 
 **a) PRs of the session.** From the conversation: every PR opened, pushed to, reviewed-and-merged,
 or merged this session. Confirm each with
@@ -109,7 +113,8 @@ Cleanup
 
 Give a recommendation for each judgment call (state moves, new ticket vs comment) in one line.
 Then **stop and wait for the user's go**. The user can drop or edit items ("go, skip the new
-ticket"). An empty job prints `nothing to do` and drops out of the plan.
+ticket"). A job with nothing to do is left out of the plan; if every job is empty, say so in one
+line and stop.
 
 ## Step 3 — Execute
 
@@ -141,7 +146,7 @@ Run in this order. One failure does not stop the rest — record it and continue
 
 ## Step 4 — Report
 
-Outcome first, a few lines:
+Outcome first, a few lines, only for jobs that ran and did something:
 
 - tickets updated / created, as links
 - threads reacted, as permalinks; PRs with no announcement found
@@ -153,6 +158,7 @@ Outcome first, a few lines:
 ## Rules
 
 - **One gate.** Nothing writes before the go in Step 2. Reads are free.
+- **Quiet when not set up.** An unconfigured job is never mentioned, in the plan or the report.
 - **Only this session's footprint.** Tickets, threads, and scratch data trace back to the
   conversation. Never sweep "all my PRs" or "everything in /tmp".
 - **Search before create.** No ticket creation without a recorded search that found no match.
