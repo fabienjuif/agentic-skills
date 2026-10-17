@@ -81,7 +81,10 @@ For each affected location, in order:
 stale or missing the new knowledge. Be surgical — small targeted edits, existing
 heading structure preserved.
 
-**b) AI docs (pointers, not copies).** Update CLAUDE.md/AGENTS.md. When the AI doc
+**b) AI docs (pointers, not copies).** Update CLAUDE.md/AGENTS.md. In a repo used by both
+hosts, ensure both entry points reach the shared instructions; preserve an existing canonical
+file and add a thin pointer from the other when needed. Codex discovery must not depend on a
+Claude-only loader hook. When the AI doc
 would restate something a human doc already covers, replace it with a reference:
 
 ```markdown

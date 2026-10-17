@@ -1,7 +1,6 @@
 ---
 name: gitmoji
 description: Commit the current changes with a gitmoji-prefixed message (https://gitmoji.dev), picking the one gitmoji that matches the intent of the change and following the repo's own commit format. Use when the user says "/gitmoji", "gitmoji commit", "commit with a gitmoji", "commit this with an emoji", "which gitmoji for this", or asks to commit in a repo whose convention or history uses gitmoji. Commits only; never pushes.
-effort: low
 allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git add *) Bash(git commit *)
 ---
 
@@ -10,28 +9,22 @@ allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git add 
 One commit, one intent, one gitmoji. The emoji is picked from the **intent** of the change
 (why it was made), not from the file types touched.
 
-Speed matters here: the target is **one tool call** (the commit). Pick the gitmoji yourself,
+Speed matters here: batch the commit operations. Pick the gitmoji yourself,
 inline; do not delegate it to a sub-agent (a spawn costs more than the pick).
 
-## Context (injected at load, do not re-run these)
+## Context
 
-Working tree (`git status --short`):
+Use current status and history already supplied by the host or gathered this turn. If missing,
+gather these read-only signals once before deciding what to stage:
 
-```!
+```bash
 git status --short
-```
-
-Staged (`git diff --staged --stat`):
-
-```!
 git diff --staged --stat
-```
-
-Recent commits (`git log --oneline -15`):
-
-```!
 git log --oneline -15
 ```
+
+These commands are instructions to run, not assumed injected output. The `allowed-tools`
+frontmatter is a Claude Code hint; follow the active host's tool permissions on either host.
 
 ## Process
 
@@ -76,7 +69,7 @@ Most commits are covered by this short list:
 | `:tada:`                | initial commit                           |
 
 If none fits, **search** the full list rather than reading it: grep
-`${CLAUDE_SKILL_DIR}/gitmojis.md` (the `gitmojis.md` next to this file) for a keyword of the
+the `gitmojis.md` next to this loaded `SKILL.md` for a keyword of the
 intent, e.g. `security`, `typo`, `revert`, `types`, `database`. Read the whole file only after
 a couple of greps miss. It also carries the glyph for repos that use the rendered form.
 

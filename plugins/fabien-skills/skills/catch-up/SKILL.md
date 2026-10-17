@@ -17,34 +17,32 @@ integrations are available. Nothing about a specific employer or repo is baked i
 
 ## Step 1 — Load config
 
-The config file is `.claude/.config/catch-up.json`. **Walk up the directory tree** from the current
-working directory looking for it, and stop at `$HOME` (inclusive):
+Use the same config in Claude Code and Codex; do not keep separate runtime copies.
 
-```
-<cwd>/.claude/.config/catch-up.json
-<cwd>/../.claude/.config/catch-up.json
-<cwd>/../../.claude/.config/catch-up.json
-… (keep going up) …
-$HOME/.claude/.config/catch-up.json
-```
+1. If `$CATCH_UP_CONFIG` is set, use that exact path and do not search elsewhere.
+2. Otherwise, walk upward from the cwd. At **each directory**, check
+   `.agents/.config/catch-up.json`, then the legacy `.claude/.config/catch-up.json`.
+   Stop at the first existing candidate: the nearest directory wins, with `.agents` preferred
+   only when both files exist in that same directory. Do not merge files.
+3. When the cwd is within `$HOME`, stop at `$HOME` (inclusive). For a cwd outside `$HOME`,
+   walk to the filesystem root, then check the two candidates in `$HOME` once as a fallback.
 
-**First match wins** — so a project-local `.claude/.config/catch-up.json` overrides the one in
-`$HOME`. Never search above `$HOME`. (`$CATCH_UP_CONFIG`, if set, takes precedence over the walk.)
+Remember the selected path. An explicit override that is missing, unreadable, or invalid, or a
+nearest existing candidate that is unreadable or invalid JSON, is an error: report the path and
+stop, rather than silently falling back to another file or overwriting it. An empty file is
+invalid JSON. A valid config with at least one source configured goes to **Step 3 (Run)**;
+if no file was found, or a valid config has no sources, go to **Step 2 (Configure)**.
 
-Read the first one found. If it parses and has at least one source configured → go to **Step 3
-(Run)**.
-
-If the file is missing or empty → go to **Step 2 (Configure)**.
-
-If the user invoked the skill with an argument like `configure`, `setup`, `reconfigure`, or
-`--config` → go to **Step 2** regardless.
+If the user invoked `configure`, `setup`, `reconfigure`, or `--config`, go to **Step 2** after
+resolving and validating the existing config. Reconfiguration updates that selected path,
+including a legacy path or explicit override, rather than creating a competing config.
 
 ## Step 2 — Configure (first run)
 
-Tell the user there's no config yet and you'll set one up. Collect the values below by **asking the
-user** (conversationally, or with `AskUserQuestion` for the bounded choices). For each source you
-include, you **must explicitly ask for that source's specifics** — never silently fall back to a
-default. In particular:
+Explain whether you are setting up or reconfiguring the selected config. Collect the values below
+by **asking the user**, using the runtime's question tool when available or ordinary conversation.
+For each source you include, you **must explicitly ask for that source's specifics** — never
+silently fall back to a default. In particular:
 
 - **Ask which Slack channels** to scope to. Don't assume "everywhere": present it as a real choice
   ("specific channels, or search everywhere you can see?") and only record `[]` if the user
@@ -77,15 +75,15 @@ skipped at run time.
 Notes when collecting:
 
 - **Slack handle** — needed to find "messages that mention you". Confirm the exact display
-  name/handle; if unsure, you can resolve it with `slack_search_users`.
+  name/handle; if unsure, resolve it with an available Slack user lookup integration.
 - **Jira projects** — project keys (e.g. `PROJ`). The JQL uses `currentUser()`, so no account id
   is needed.
 - **GitHub repos** — `owner/name` slugs. Reviewer/mention search uses `@me`, so login is optional.
 
-Write the file to `$HOME/.claude/.config/catch-up.json` by default (so it applies in every project),
-creating the `.claude/.config/` directory first. If the user wants this config to apply only to the
-current project, write it to `<repo-root>/.claude/.config/catch-up.json` instead. Then continue to
-**Step 3** with the values you just collected.
+For reconfiguration, write back to the selected path from Step 1. For first setup with no
+selected file, default to `$HOME/.agents/.config/catch-up.json` so both runtimes share it.
+If the user wants project-only config, use `<repo-root>/.agents/.config/catch-up.json` instead.
+Create the parent directory if needed. Then continue to **Step 3** with the collected values.
 
 ## Step 3 — Run
 
@@ -94,7 +92,9 @@ Compute the cutoff date once: `date -d "-${lookbackDays} days" +%Y-%m-%d` (GNU) 
 
 Run the three source checks **in parallel** (independent — fire them in one batch). Skip any source
 that isn't present in the config. If an integration/tool is unavailable, note it as "unavailable"
-rather than failing the whole run.
+rather than failing the whole run. Discover the integrations available in the current runtime;
+named tools below are examples, not requirements. Use equivalent connected tools or authenticated
+CLI/API access when available; do not assume another plugin or skill is installed.
 
 **Fan out within each source too** — don't loop sequentially. Issue one query per configured
 **Slack channel**, one per **Jira project**, and one per **GitHub repo**, all in the same parallel
@@ -109,28 +109,31 @@ Use the Slack search tools. Run, for the configured `channels` (or unscoped if `
 - Their own thread activity / DMs: query `from:@<slackHandle> after:<cutoff>` to catch threads they
   drove and conversations awaiting their reply.
 
-Prefer `slack_search_public_and_private` if available, else `slack_search_public`. Collapse results
-to the distinct threads/conversations; for each, capture channel, who, a one-line gist, and a link.
+Use available Slack message search, including private conversations only when authorized access
+is available (for example, `slack_search_public_and_private` or `slack_search_public`). Collapse
+results to distinct threads/conversations; capture channel, who, a one-line gist, and a link.
 
 Also pull the user's **"save for later" / Later** items — messages they explicitly bookmarked to
 come back to. These are high-signal by definition (the user chose them), so treat them as such when
-ranking. There may be no dedicated MCP tool for this; if so, fetch them via the Slack Web API
-`stars.list` / saved-items endpoint (e.g. through the `slack:slack-api` skill or a `curl` with the
-workspace token). If no such access is available, note "Later items: unavailable" rather than
-dropping the category silently.
+ranking. Use an authenticated saved-items endpoint exposed by an available integration or API
+client. An optional Slack API skill may help if installed; do not assume it or a workspace token
+exists. If no such access is available, note "Later items: unavailable" rather than dropping the
+category silently.
 
 **Read the thread before ranking any Slack item as blocked-on-you.** A single matched message is a
 snippet, not a verdict — a mention that reads like an open question to the user is often already
 answered by them further down the thread, or the whole incident is resolved. For every Slack item a
 first pass would rank in tier 1 (directly blocked on you), pull the full thread with
-`slack_read_thread` and check whether the user already replied and whether the ask still stands. Only
-keep it in tier 1 if it's genuinely still waiting; otherwise demote it (already-replied → tier 3, or
-drop it into the rolled-up tail). This costs a few extra reads but is what stops false "you owe a
+an available Slack thread-reading operation (for example, `slack_read_thread`) and check whether
+the user already replied and whether the ask still stands. Only keep it in tier 1 if it's genuinely
+still waiting; otherwise demote it (already-replied → tier 3, or drop it into the rolled-up tail).
+This costs a few extra reads but is what stops false "you owe a
 reply" items. Do this for the tier-1 candidates, not the whole feed.
 
 ### Jira — assigned to me or open & unassigned
 
-Run **one query per configured project, in parallel** (`searchJiraIssuesUsingJql`, Atlassian MCP):
+Run **one query per configured project, in parallel**, using an available Jira JQL search
+operation (for example, `searchJiraIssuesUsingJql` on an Atlassian integration):
 
 ```
 project = <PROJECT>
@@ -144,8 +147,9 @@ Merge the per-project results. For each issue capture key, summary, status, assi
 
 ### GitHub — open PRs in my repos + PRs that mention me
 
-Use the `gh` CLI via Bash (most portable — no MCP dependency). Run these concurrently (separate
-background Bash calls, or one batch), not in a sequential loop:
+Use authenticated `gh` through the available shell tool, or equivalent connected GitHub search
+operations if `gh` is unavailable. With `gh`, run these concurrently using the runtime's parallel
+execution capability, not in a sequential loop:
 
 - Per configured repo, open PRs — **one `gh pr list` per repo, in parallel**:
   `gh pr list --repo <repo> --state open --json number,title,author,url,updatedAt,isDraft,reviewRequests`
@@ -200,4 +204,5 @@ silently omitting it.
 
 ## Re-configuring
 
-`/catch-up configure` (or `setup` / `reconfigure`) re-runs Step 2 and overwrites the config file.
+`/catch-up configure` (or `setup` / `reconfigure`) re-runs Step 2 and updates the selected config
+path from Step 1.
