@@ -52,6 +52,7 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 | `gitmoji`       | Commit the current changes with the one [gitmoji](https://gitmoji.dev) that matches the intent, in the repo's own format. Never pushes.    | `git` only                                      |
 | `catch-up`      | Daily dashboard of Slack messages, Jira tickets and open PRs that need you, distilled into one prioritized list. Self-configures on first run. | `gh`, Slack MCP, Jira MCP; each source optional |
 | `tmp-cleanup`   | Free RAM by deleting stale entries from `/tmp` (tmpfs on many Linux systems). Dry-run by default.                                         | Linux or macOS                                  |
+| `eta`           | ETA of what the agent is doing, in one fixed format (progress bar, clock time, per-step table), using timings learned from your past commands in each repo. | Python 3 (stdlib only)                          |
 
 More skills get added to the same `fabien-skills` plugin over time.
 
@@ -70,6 +71,8 @@ agentic-skills/
 │   └── fabien-skills/
 │       ├── .claude-plugin/
 │       │   └── plugin.json      # plugin manifest
+│       ├── hooks/
+│       │   └── hooks.json       # timing hooks used by the eta skill
 │       └── skills/
 │           ├── make-plan/
 │           │   └── SKILL.md
@@ -89,6 +92,9 @@ agentic-skills/
 │           ├── tmp-cleanup/
 │           │   ├── SKILL.md
 │           │   └── tmp-cleanup.sh  # dry-run by default, --apply deletes
+│           ├── eta/
+│           │   ├── SKILL.md
+│           │   └── eta.py          # renders the ETA block; `hook` mode records timings
 │           └── close-session/
 │               └── SKILL.md
 ├── README.md                    # this file (for humans)
