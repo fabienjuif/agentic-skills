@@ -35,8 +35,8 @@ the PR title without `(#N)`, empty body.
 2. `sha=$(<skill dir>/gate.sh <n> [gate command...])` in the foreground. On GitHub it waits for
    the required checks (all checks when none are required); Forgejo checks are not read, only the
    local command gates there. The command runs in a throwaway worktree of the head, skipped when
-   every changed file is docs. On a failure, do not merge: report the failing step and offer to
-   fix it on the branch.
+   every changed file is docs or agent config (`*.md`, `docs/`, `.claude/`). On a failure, do not
+   merge: report the failing step and offer to fix it on the branch.
 3. `<skill dir>/merge.sh <n> "$sha" "<subject>" ["<body>"]`. It refuses a head that moved past
    `$sha` (re-run the gate), a closed PR and, on Forgejo, a conflicting one. Right after another
    merge Forgejo reports conflicts until it rechecks: `git merge-tree --write-tree

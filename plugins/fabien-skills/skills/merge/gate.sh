@@ -2,7 +2,7 @@
 # Gate a PR before it merges; prints the head sha it passed on, for merge.sh.
 # On GitHub, waits for the required checks (all checks when none are
 # required). With a command, also runs it on the head in a throwaway worktree,
-# unless every changed file is docs (*.md, docs/).
+# unless every changed file is docs or agent config (*.md, docs/, .claude/).
 #   gate.sh <n> [command...]
 set -euo pipefail
 dir=$(dirname "$0")
@@ -26,7 +26,7 @@ fi
 if [ $# -gt 0 ]; then
     primary=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
     git -C "$primary" fetch -q origin "$base" "refs/pull/$n/head"
-    if git -C "$primary" diff --name-only "origin/$base...$sha" | grep -qvE '(\.md$|^docs/)'; then
+    if git -C "$primary" diff --name-only "origin/$base...$sha" | grep -qvE '(\.md$|^docs/|^\.claude/)'; then
         wt=$primary/.worktrees/gate-pr-$n
         git -C "$primary" worktree add -q --detach "$wt" "$sha"
         trap 'git -C "$primary" worktree remove --force "$wt"' EXIT
