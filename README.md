@@ -48,6 +48,7 @@ This repo is a **plugin marketplace** holding a single bundle plugin, `fabien-sk
 | `capture-docs`  | At session end, write what was learned into human and AI-facing docs so the next session starts cheaper.                                  | `git` only                                      |
 | `close-session` | Wrap up in one pass: update tickets, react on Slack threads of merged PRs, open a docs PR, clean scratch data, fast-forward main checkouts. | `git`, `gh`; Linear MCP and Slack MCP optional |
 | `fix-stale-doc` | Full-repo documentation sweep that fixes stale claims, removes duplication and compacts prose, one sub-agent per module.                   | `git` only                                      |
+| `merge`         | Squash-merge a PR on GitHub or Forgejo: gate on required checks and an optional local command, merge pinned to the gated sha in the repo's commit format, clean up worktree and branch. | `git`, `gh` or a Forgejo token, Python 3       |
 | `pr-review`     | Review a PR and post one consolidated comment that updates in place across re-reviews, so the thread stays clean.                           | `gh`                                            |
 | `gitmoji`       | Commit the current changes with the one [gitmoji](https://gitmoji.dev) that matches the intent, in the repo's own format. Never pushes.    | `git` only                                      |
 | `catch-up`      | Daily dashboard of Slack messages, Jira tickets and open PRs that need you, distilled into one prioritized list. Self-configures on first run. | `gh`, Slack MCP, Jira MCP; each source optional |
@@ -92,6 +93,9 @@ agentic-skills/
 │           ├── tmp-cleanup/
 │           │   ├── SKILL.md
 │           │   └── tmp-cleanup.sh  # dry-run by default, --apply deletes
+│           ├── merge/
+│           │   ├── SKILL.md
+│           │   └── *.sh            # pr, gate, merge, cleanup, conflicts; forge.sh picks GitHub or Forgejo
 │           ├── eta/
 │           │   ├── SKILL.md
 │           │   └── eta.py          # renders the ETA block; `hook` mode records timings
